@@ -1,6 +1,15 @@
 // Governance contract types mirroring the Rust contract
 
-export type ProposalState = 'Active' | 'Passed' | 'Rejected' | 'Executed' | 'Cancelled';
+export type ProposalState = 'Active' | 'Passed' | 'Rejected' | 'Executed' | 'Cancelled' | 'Draft';
+
+export interface DraftProposal {
+  id: string;
+  title: string;
+  description: string;
+  quorum: string;
+  duration: string;
+  savedAt: number;
+}
 export type VoteType = 'Yes' | 'No' | 'Abstain';
 
 export interface Proposal {

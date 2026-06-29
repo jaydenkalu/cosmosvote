@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import type { DraftProposal } from '../types';
+import { saveDraft } from '../drafts';
 
 interface Props {
   onClose: () => void;
   onSuccess: (proposalId: number) => void;
   onAnnounce?: (msg: string) => void;
   onError?: (msg: string) => void;
+  initialDraft?: DraftProposal | null;
+  onDraftSaved?: (draft: DraftProposal) => void;
 }
 
 interface FormState {
@@ -50,13 +54,23 @@ function validate(f: FormState): Partial<Record<keyof FormState, string>> {
   return errs;
 }
 
-export function NewProposalForm({ onClose, onSuccess, onAnnounce, onError }: Props) {
-  const [form, setForm] = useState<FormState>(INITIAL);
+export function NewProposalForm({ onClose, onSuccess, onAnnounce, onError, initialDraft, onDraftSaved }: Props) {
+  const [form, setForm] = useState<FormState>(
+    initialDraft
+      ? { title: initialDraft.title, description: initialDraft.description, quorum: initialDraft.quorum, duration: initialDraft.duration }
+      : INITIAL
+  );
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSaveDraft = () => {
+    const draft = saveDraft({ title: form.title, description: form.description, quorum: form.quorum, duration: form.duration });
+    onAnnounce?.('Draft saved.');
+    onDraftSaved?.(draft);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,6 +177,14 @@ export function NewProposalForm({ onClose, onSuccess, onAnnounce, onError }: Pro
               style={{ padding: '0.5rem 1rem', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', cursor: 'pointer' }}
             >
               Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={submitting}
+              style={{ padding: '0.5rem 1rem', border: '1px solid #6b7280', borderRadius: 6, background: '#fff', cursor: 'pointer' }}
+            >
+              Save as Draft
             </button>
             <button
               type="submit"
